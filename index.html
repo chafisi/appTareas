@@ -524,10 +524,19 @@
         }
         document.getElementById("parte").value = textoLimpio; 
 
+        //Manipular imagen para mostrar
+        // Lógica de la mini-imagen con parche para URLs antiguas
         if(tarea.imagen && tarea.imagen.includes("http")) {
+            let urlSegura = tarea.imagen;
+            
+            // Si el enlace es del formato antiguo, lo transformamos al vuelo
+            if (urlSegura.includes("drive.google.com/uc?id=")) {
+                urlSegura = urlSegura.replace("drive.google.com/uc?id=", "drive.usercontent.google.com/download?id=");
+            }
+
             document.getElementById("contenedor_mini_imagen").style.display = "block";
-            document.getElementById("mini_imagen_preview").src = tarea.imagen;
-            document.getElementById("imagen_actual_url").value = tarea.imagen;
+            document.getElementById("mini_imagen_preview").src = urlSegura;
+            document.getElementById("imagen_actual_url").value = urlSegura; // Guardamos la versión buena
             document.getElementById("imagen").style.display = "none"; 
         } else {
             quitarImagenPrevia();

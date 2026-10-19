@@ -526,18 +526,31 @@
 
         //Manipular imagen para mostrar
         // Lógica de la mini-imagen con parche para URLs antiguas
+        // Lógica de la mini-imagen (Extraemos el ID y usamos el visor de miniaturas de Google)
         if(tarea.imagen && tarea.imagen.includes("http")) {
-            let urlSegura = tarea.imagen;
-            
-            // Si el enlace es del formato antiguo, lo transformamos al vuelo
-            if (urlSegura.includes("drive.google.com/uc?id=")) {
-                urlSegura = urlSegura.replace("drive.google.com/uc?id=", "drive.usercontent.google.com/download?id=");
+            let urlGuardada = tarea.imagen;
+            let idArchivo = "";
+
+            // 1. Extraer el ID de la imagen sin importar el formato viejo o nuevo que tengamos guardado
+            if (urlGuardada.includes("id=")) {
+                idArchivo = urlGuardada.split("id=")[1].split("&")[0];
+            } else if (urlGuardada.includes("/file/d/")) {
+                idArchivo = urlGuardada.split("/file/d/")[1].split("/")[0];
             }
 
-            document.getElementById("contenedor_mini_imagen").style.display = "block";
-            document.getElementById("mini_imagen_preview").src = urlSegura;
-            document.getElementById("imagen_actual_url").value = urlSegura; // Guardamos la versión buena
-            document.getElementById("imagen").style.display = "none"; 
+            if (idArchivo) {
+                // 2. Generamos una URL especial para miniaturas que salta el bloqueo CORS (sz=w400 ajusta el ancho)
+                let urlMiniatura = "https://drive.google.com/thumbnail?id=" + idArchivo + "&sz=w400";
+                
+                document.getElementById("contenedor_mini_imagen").style.display = "block";
+                document.getElementById("mini_imagen_preview").src = urlMiniatura;
+                
+                // Mantenemos la URL original en el value oculto para no perder la máxima calidad al guardar
+                document.getElementById("imagen_actual_url").value = urlGuardada; 
+                document.getElementById("imagen").style.display = "none"; 
+            } else {
+                quitarImagenPrevia();
+            }
         } else {
             quitarImagenPrevia();
         }

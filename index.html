@@ -52,7 +52,7 @@
     <!-- 0. PANTALLA DE CARGA INICIAL -->
     <div id="loading" class="text-center mt-5 app-section">
         <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-        <p class="mt-3 fw-bold text-secondary">Sincronizando datos7...</p>
+        <p class="mt-3 fw-bold text-secondary">Sincronizando datos8...</p>
     </div>
 
     <!-- 1. PANTALLA: LOGIN -->
@@ -504,7 +504,99 @@
         return `${f[2]}/${f[1]}/${f[0].slice(-2)}`;
     }
 
-    // Función puente que llama el botón del menú HTML
+    // --- MOTOR DE BÚSQUEDA Y FILTRADO ---
+
+    // 1. Obtener la base de tareas según el rol
+    function obtenerMisTareasBase() {
+        if (rolValidado === "admin") return datosApp.tareas;
+        return datosApp.tareas.filter(t => t.usuario === usuarioValidado);
+    }
+
+    // 2. Filtros de la Barra Principal (Buscador y Mes)
+    function aplicarFiltrosPrincipales() {
+        const texto = document.getElementById("buscadorPartes").value.toLowerCase();
+        const filtroMes = document.getElementById("filtroMes").value; // "actual" o "todo"
+        
+        let tareas = obtenerMisTareasBase();
+        const mesActual = new Date().getMonth();
+        const anoActual = new Date().getFullYear();
+
+        tareas = tareas.filter(t => {
+            // Filtro por texto
+            let matchTexto = true;
+            if (texto !== "") {
+                const nomLugar = (datosApp.clientes.find(c => c.id === t.lugar)?.nombre || "").toLowerCase();
+                const desc = t.descripcion_corta.toLowerCase();
+                matchTexto = nomLugar.includes(texto) || desc.includes(texto);
+            }
+
+            // Filtro por mes
+            let matchMes = true;
+            if (filtroMes === "actual") {
+                const fechaT = new Date(convertirAFechaInput(t.fecha_inicio));
+                matchMes = (fechaT.getMonth() === mesActual && fechaT.getFullYear() === anoActual);
+            }
+
+            return matchTexto && matchMes;
+        });
+
+        renderizarTareas(tareas);
+    }
+
+    // 3. Filtros del Panel Lateral (Ignora el buscador principal)
+    function aplicarFiltrosLaterales() {
+        const idLugar = document.getElementById("filtro_lugar").value;
+        const idEstado = document.getElementById("filtro_estado").value;
+        const idTipo = document.getElementById("filtro_tipo").value;
+        const fInicio = document.getElementById("filtro_fecha_inicio").value;
+        const fFin = document.getElementById("filtro_fecha_fin").value;
+        const idUsuario = document.getElementById("filtro_usuario").value;
+        const idEquipo = document.getElementById("filtro_equipo").value;
+
+        let tareas = obtenerMisTareasBase();
+
+        tareas = tareas.filter(t => {
+            if (idLugar && t.lugar !== idLugar) return false;
+            if (idEstado && t.estado !== idEstado) return false;
+            if (idTipo && t.tipo !== idTipo) return false;
+            
+            // Filtros Admin
+            if (rolValidado === "admin") {
+                if (idUsuario && t.usuario !== idUsuario) return false;
+                if (idEquipo && t.equipo !== idEquipo) return false;
+            }
+
+            // Rango de fechas
+            if (fInicio || fFin) {
+                const fTarea = new Date(convertirAFechaInput(t.fecha_inicio));
+                if (fInicio && fTarea < new Date(fInicio)) return false;
+                if (fFin && fTarea > new Date(fFin)) return false;
+            }
+            
+            return true;
+        });
+
+        // Cerramos el panel lateral
+        const panel = bootstrap.Offcanvas.getInstance(document.getElementById('panelFiltros'));
+        if(panel) panel.hide();
+
+        renderizarTareas(tareas);
+    }
+
+    function limpiarFiltrosLaterales() {
+        document.getElementById("filtro_lugar").value = "";
+        document.getElementById("filtro_estado").value = "";
+        document.getElementById("filtro_tipo").value = "";
+        document.getElementById("filtro_fecha_inicio").value = "";
+        document.getElementById("filtro_fecha_fin").value = "";
+        if(rolValidado === "admin"){
+            document.getElementById("filtro_usuario").value = "";
+            document.getElementById("filtro_equipo").value = "";
+        }
+        aplicarFiltrosPrincipales(); // Vuelve a los filtros por defecto de la barra
+    }
+
+    // Reemplaza a la antigua cargarListadoTareas
     function cargarListadoTareas() {
         aplicarFiltrosPrincipales();
     }

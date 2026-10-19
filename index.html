@@ -52,7 +52,7 @@
     <!-- 0. PANTALLA DE CARGA INICIAL -->
     <div id="loading" class="text-center mt-5 app-section">
         <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-        <p class="mt-3 fw-bold text-secondary">Sincronizando datos8...</p>
+        <p class="mt-3 fw-bold text-secondary">Sincronizando datos9...</p>
     </div>
 
     <!-- 1. PANTALLA: LOGIN -->
@@ -90,7 +90,7 @@
             </div>
             <div class="col-12 col-md-6">
                 
-                <div class="card shadow-sm menu-card h-100 p-4 text-center" onclick="cargarListadoTareas(); navegarA('list-section');">
+                <div class="card shadow-sm menu-card h-100 p-4 text-center" onclick="abrirListadoActualizado()">
                     <i class="bi bi-card-list menu-icon"></i>
                     <h5 class="fw-bold">Revisar Listado</h5>
                     <p class="text-muted small mb-0">Ver tus partes anteriores</p>
@@ -392,11 +392,19 @@
     });
 
     // Función que descarga los datos (sirve para inicio y para refrescar tras guardar)
-    function cargarDatosDesdeAPI(esCargaInicial = false) {
-        return fetch(API_URL)
+    function cargarDatosDesdeAPI(esCargaInicial = false, tipo = "todo") {
+        const url = API_URL + "?tipo=" + tipo; // Le decimos al backend qué queremos
+        return fetch(url) 
             .then(response => response.json())
             .then(data => {
-                datosApp = data;
+                // Actualizamos solo las variables que nos devuelve el servidor
+                if(data.clientes) datosApp.clientes = data.clientes;
+                if(data.tipologias) datosApp.tipologias = data.tipologias;
+                if(data.estados) datosApp.estados = data.estados;
+                if(data.equipos) datosApp.equipos = data.equipos;
+                if(data.usuarios) datosApp.usuarios = data.usuarios;
+                if(data.tareas) datosApp.tareas = data.tareas;
+                
                 if(esCargaInicial) {
                     rellenarDesplegables();
                     configurarFechasPorDefecto();
@@ -405,9 +413,6 @@
             })
             .catch(error => {
                 console.error("Error al cargar datos:", error);
-                if(esCargaInicial) {
-                    document.getElementById("loading").innerHTML = "<p class='text-danger mt-3'><i class='bi bi-exclamation-triangle'></i> Error de conexión con la base de datos.</p>";
-                }
             });
     }
 
@@ -601,6 +606,47 @@
         aplicarFiltrosPrincipales();
     }
 
+    // Obliga a bajar las tareas de internet antes de abrir la pantalla
+    function abrirListadoActualizado() {
+        // Mostramos algo visual mientras carga (opcional pero recomendado)
+        const btnFiltro = document.getElementById("buscadorPartes");
+        if(btnFiltro) btnFiltro.placeholder = "Sincronizando base de datos...";
+        
+        cargarDatosDesdeAPI(false, "tareas").then(() => {
+            if(btnFiltro) btnFiltro.placeholder = "Buscar texto libre...";
+            aplicarFiltrosPrincipales();
+            navegarA('list-section');
+        });
+    }
+
+    // Lógica del botón Eliminar
+    function eliminarTarea(idTarea) {
+        if (confirm("¿Estás seguro de que deseas eliminar este parte?\nEsta acción no se puede deshacer.")) {
+            
+            const payload = { modo: "eliminar", idRegistro: idTarea };
+            
+            // Mostramos feedback visual (usamos un alert por simplicidad, pero podrías usar un toast)
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.estado === "ok") {
+                    alert("🗑️ Parte eliminado correctamente.");
+                    // Refrescamos los datos desde Sheets y repintamos
+                    cargarDatosDesdeAPI(false, "tareas").then(() => {
+                        aplicarFiltrosPrincipales(); 
+                    });
+                } else {
+                    alert("❌ Error al eliminar: " + data.error);
+                }
+            })
+            .catch(error => alert("⚠️ Error de red al eliminar."));
+        }
+    }
+
     function renderizarTareas(listaTareas) {
         const contenedor = document.getElementById("contenedorListaTareas");
         contenedor.innerHTML = ""; 
@@ -662,7 +708,7 @@
                                 <button class="btn btn-sm btn-outline-primary w-100" onclick="prepararEdicion('${tarea.id}')">
                                     <i class="bi bi-pencil-square"></i> Modificar
                                 </button>
-                                <button class="btn btn-sm btn-outline-danger w-100" onclick="alert('Eliminar en desarrollo')">
+                                <button class="btn btn-sm btn-outline-danger w-100" onclick="eliminarTarea('${tarea.id}')">
                                     <i class="bi bi-trash"></i> Eliminar
                                 </button>
                             </div>
@@ -754,6 +800,10 @@
         // Restauramos los textos originales del formulario
         document.querySelector("#form-section .card-title").innerText = "Nuevo Parte de Trabajo";
         document.getElementById("btnEnviarParte").innerHTML = '<i class="bi bi-send-check"></i> Enviar Parte';
+        
+        const btn = document.getElementById("btnEnviarParte");
+        btn.innerHTML = '<i class="bi bi-send-check"></i> Enviar Parte';
+        btn.disabled = false; // <--- ESTO ARREGLA EL BLOQUEO
         
         const btnVolver = document.querySelector("#form-section .btn-outline-secondary");
         if(btnVolver) btnVolver.innerHTML = '<i class="bi bi-arrow-left"></i> Volver al menú';

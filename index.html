@@ -229,7 +229,8 @@
                         <div class="input-group shadow-sm">
                             <span class="input-group-text bg-white"><i class="bi bi-calendar3"></i></span>
                             <select class="form-select border-start-0" id="filtroMes">
-                                <option value="actual">Octubre 2026</option>
+                                <!-- Las opciones las inyectará JS dinámicamente -->
+                                <option value="actual">Mes en curso</option>
                                 <option value="todo">Ver histórico completo</option>
                             </select>
                         </div>
@@ -237,12 +238,13 @@
                     <div class="col-8 col-md-6">
                         <div class="input-group shadow-sm">
                             <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                            <input type="text" class="form-control border-start-0" id="buscadorPartes" placeholder="Buscar lugar o descripción...">
+                            <input type="text" class="form-control border-start-0" id="buscadorPartes" placeholder="Buscar texto libre...">
                         </div>
                     </div>
                     <div class="col-4 col-md-2">
-                        <button class="btn btn-outline-primary w-100 shadow-sm" onclick="alert('Filtros por estado/tipo en desarrollo')">
-                            <i class="bi bi-funnel"></i> Filtrar
+                        <!-- Este botón ahora abre el panel lateral -->
+                        <button class="btn btn-outline-primary w-100 shadow-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#panelFiltros">
+                            <i class="bi bi-funnel"></i> Filtros
                         </button>
                     </div>
                 </div>
@@ -286,6 +288,76 @@
         </div>
     </div>
     
+</div>
+
+<!-- PANEL LATERAL DE FILTROS (OFFCANVAS) -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="panelFiltros" aria-labelledby="panelFiltrosLabel">
+    <div class="offcanvas-header bg-light border-bottom">
+        <h5 class="offcanvas-title fw-bold" id="panelFiltrosLabel"><i class="bi bi-funnel text-primary"></i> Filtros Avanzados</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+    </div>
+    <div class="offcanvas-body">
+        
+        <div class="mb-3">
+            <label class="form-label small fw-bold text-muted">LUGAR / CLIENTE</label>
+            <select class="form-select form-select-sm" id="filtro_lugar">
+                <option value="">Todos los lugares</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label small fw-bold text-muted">ESTADO</label>
+            <select class="form-select form-select-sm" id="filtro_estado">
+                <option value="">Todos los estados</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label small fw-bold text-muted">TIPO DE TRABAJO</label>
+            <select class="form-select form-select-sm" id="filtro_tipo">
+                <option value="">Todos los tipos</option>
+            </select>
+        </div>
+
+        <div class="row g-2 mb-3">
+            <div class="col-6">
+                <label class="form-label small fw-bold text-muted">FECHA DESDE</label>
+                <input type="date" class="form-control form-control-sm" id="filtro_fecha_inicio">
+            </div>
+            <div class="col-6">
+                <label class="form-label small fw-bold text-muted">FECHA HASTA</label>
+                <input type="date" class="form-control form-control-sm" id="filtro_fecha_fin">
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        <!-- ZONA EXCLUSIVA ADMINISTRADORES -->
+        <div id="zonaFiltrosAdmin" class="bg-light p-3 rounded border opacity-75">
+            <p class="small fw-bold text-primary mb-2"><i class="bi bi-shield-lock"></i> Controles de Administración</p>
+            <div class="mb-2">
+                <label class="form-label small text-muted">FILTRAR POR USUARIO</label>
+                <select class="form-select form-select-sm" id="filtro_usuario" disabled>
+                    <option value="">Todos los usuarios</option>
+                </select>
+            </div>
+            <div>
+                <label class="form-label small text-muted">FILTRAR POR EQUIPO</label>
+                <select class="form-select form-select-sm" id="filtro_equipo" disabled>
+                    <option value="">Todos los equipos</option>
+                </select>
+            </div>
+        </div>
+        
+    </div>
+    <div class="offcanvas-footer p-3 border-top bg-white">
+        <button class="btn btn-primary w-100 fw-bold shadow-sm" onclick="aplicarFiltrosLaterales()">
+            <i class="bi bi-check2-circle"></i> Aplicar Filtros
+        </button>
+        <button class="btn btn-link text-danger w-100 text-decoration-none mt-1" onclick="limpiarFiltrosLaterales()">
+            Limpiar todo
+        </button>
+    </div>
 </div>
 
 <!-- Librerías JS -->

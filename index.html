@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -41,17 +41,18 @@
 
 <div class="container app-container">
     
-    <!-- CABECERA DE USUARIO (Se muestra solo tras loguearse) -->
+   <!-- CABECERA DE USUARIO -->
     <div id="user-header" class="app-section mb-4 text-end">
         <span class="badge bg-primary rounded-pill px-3 py-2 shadow-sm">
-            <i class="bi bi-person-circle me-1"></i> <span id="headerNombre"></span> | <span id="headerEquipo"></span>
+            <i class="bi bi-person-circle me-1"></i> <span id="headerNombre"></span> | <span id="headerEquipo"></span> 
+            <span class="ms-2 border-start ps-2 text-warning fw-bold text-uppercase" style="font-size: 0.75rem;" id="headerRol"></span>
         </span>
     </div>
 
     <!-- 0. PANTALLA DE CARGA INICIAL -->
     <div id="loading" class="text-center mt-5 app-section">
         <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-        <p class="mt-3 fw-bold text-secondary">Sincronizando datos4...</p>
+        <p class="mt-3 fw-bold text-secondary">Sincronizando datos5...</p>
     </div>
 
     <!-- 1. PANTALLA: LOGIN -->
@@ -374,10 +375,15 @@
         if (usuarioEncontrado) {
             usuarioValidado = usuarioEncontrado.id;
             equipoValidado = usuarioEncontrado.extra;
-            rolValidado = usuarioEncontrado.rol || "tecnico"; // <--- AÑADE ESTA LÍNEA
+            rolValidado = usuarioEncontrado.rol || "tecnico"; 
+
             document.getElementById("headerNombre").innerText = usuarioEncontrado.nombre;
             const equipoObj = datosApp.equipos.find(e => e.id === equipoValidado);
             document.getElementById("headerEquipo").innerText = equipoObj ? equipoObj.nombre : equipoValidado;
+            
+            // Inyectamos el rol en la cabecera visual
+            document.getElementById("headerRol").innerText = rolValidado;
+
             navegarA('menu-section');
         } else {
             document.getElementById("loginError").style.display = "block";

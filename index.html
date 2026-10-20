@@ -52,7 +52,7 @@
     <!-- 0. PANTALLA DE CARGA INICIAL -->
     <div id="loading" class="text-center mt-5 app-section">
         <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-        <p class="mt-3 fw-bold text-secondary">Sincronizando datos16...</p>
+        <p class="mt-3 fw-bold text-secondary">Sincronizando datos17...</p>
     </div>
 
     <!-- 1. PANTALLA: LOGIN -->
@@ -97,10 +97,10 @@
                 </div>
             </div>
             <div class="col-12 col-md-6">
-                <div class="card shadow-sm menu-card h-100 p-4 text-center" onclick="alert('Módulo en construcción')">
-                    <i class="bi bi-bar-chart-line menu-icon"></i>
-                    <h5 class="fw-bold">Informes</h5>
-                    <p class="text-muted small mb-0">Estadísticas y resúmenes</p>
+                <div class="card shadow-sm menu-card h-100 p-4 text-center" onclick="navegarA('informes-section')">
+                    <i class="bi bi-file-earmark-pdf fs-1 text-danger mb-3"></i>
+                    <h5 class="fw-bold">Informes y Exportación</h5>
+                    <p class="text-muted small">Generar informes globales en pantalla y PDF</p>
                 </div>
             </div>
             <div class="col-12 col-md-6">
@@ -292,6 +292,74 @@
                     <!-- FIN ESTRUCTURA BOCETO -->
 
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCIÓN 4: INFORMES Y PDF                  -->
+    <!-- ========================================== -->
+    <div id="informes-section" class="app-section" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold text-primary"><i class="bi bi-file-earmark-pdf"></i> Generador de Informes</h4>
+            <button class="btn btn-outline-secondary btn-sm" onclick="navegarA('menu-section')"><i class="bi bi-arrow-left"></i> Volver</button>
+        </div>
+
+        <!-- Panel de Configuración del Informe -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white fw-bold">
+                <i class="bi bi-gear"></i> CONFIGURACIÓN: INFORME GLOBAL
+            </div>
+            <div class="card-body">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">FECHA INICIO</label>
+                        <input type="date" class="form-control" id="informe_fecha_inicio">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small fw-bold text-muted">FECHA FIN (Opcional)</label>
+                        <input type="date" class="form-control" id="informe_fecha_fin">
+                        <div class="form-text text-warning fw-bold" style="font-size: 0.75rem;">
+                            * Si lo dejas en blanco, solo se hará el informe del día de inicio.
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end mt-4 mt-md-0">
+                        <button class="btn btn-primary w-100 shadow-sm" style="height: 38px;">
+                            <i class="bi bi-lightning-charge"></i> Generar informe
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visor del Informe (Boceto estático) -->
+        <div id="contenedorResultadoInforme" class="card shadow-sm border-primary">
+            <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0 text-primary">Vista Previa del Informe</h6>
+                <button class="btn btn-danger btn-sm shadow-sm">
+                    <i class="bi bi-filetype-pdf"></i> Exportar a PDF
+                </button>
+            </div>
+            
+            <!-- El aspecto final de las líneas del informe -->
+            <div class="card-body bg-light p-4" id="informeVisual">
+                
+                <h5 class="fw-bold text-dark text-uppercase border-bottom border-dark pb-2 mb-3">OCTUBRE 2026</h5>
+                
+                <!-- Formato: [Lugar | Descripción] [Tipo] [Fechas] [Días] [Equipo] -->
+                <div class="bg-white p-2 border rounded mb-2 shadow-sm" style="font-family: monospace; font-size: 0.85rem;">
+                    <strong>[Ayuntamiento | Reposición de luminarias]</strong> [Mantenimiento] [18/10/2026 - 19/10/2026] [2 Días] [E6-Gestion-admin]
+                </div>
+                <div class="bg-white p-2 border rounded mb-2 shadow-sm" style="font-family: monospace; font-size: 0.85rem;">
+                    <strong>[Colegio San José | Fuga de agua en baños]</strong> [Fontanería] [19/10/2026 - 19/10/2026] [1 Día] [E4-ZV-Solares]
+                </div>
+
+                <h5 class="fw-bold text-dark text-uppercase border-bottom border-dark pb-2 mt-4 mb-3">NOVIEMBRE 2026</h5>
+                
+                <div class="bg-white p-2 border rounded mb-2 shadow-sm" style="font-family: monospace; font-size: 0.85rem;">
+                    <strong>[Polideportivo | Pintura de pistas de pádel]</strong> [Pintura] [02/11/2026 - 05/11/2026] [4 Días] [E1-Pintura]
+                </div>
+
             </div>
         </div>
     </div>

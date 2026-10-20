@@ -52,7 +52,7 @@
     <!-- 0. PANTALLA DE CARGA INICIAL -->
     <div id="loading" class="text-center mt-5 app-section">
         <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-        <p class="mt-3 fw-bold text-secondary">Sincronizando datos12...</p>
+        <p class="mt-3 fw-bold text-secondary">Sincronizando datos13...</p>
     </div>
 
     <!-- 1. PANTALLA: LOGIN -->
@@ -419,9 +419,9 @@
     function rellenarDesplegables() {
         const cargarOpciones = (selectId, lista) => {
             const select = document.getElementById(selectId);
-            if(!select) return; // Evita errores si el id no existe
+            if(!select) return; 
             select.innerHTML = '<option value="">Todos...</option>'; 
-            if(selectId === 'lugar') select.innerHTML = '<option value="">Selecciona o escribe...</option>';
+            if(selectId === 'lugar' || selectId === 'filtro_lugar') select.innerHTML = '<option value="">Selecciona o escribe...</option>';
             
             lista.forEach(item => {
                 let opcion = document.createElement("option");
@@ -431,17 +431,15 @@
             });
         };
 
-        // Selectores del formulario principal
+        // Selectores
         cargarOpciones("lugar", datosApp.clientes);
         cargarOpciones("tipo", datosApp.tipologias);
         cargarOpciones("estado", datosApp.estados);
-
-        // Selectores del panel de filtros
         cargarOpciones("filtro_lugar", datosApp.clientes);
         cargarOpciones("filtro_estado", datosApp.estados);
         cargarOpciones("filtro_tipo", datosApp.tipologias);
 
-        // Lógica de Admin para el panel de filtros
+        // Lógica Admin
         if (rolValidado === "admin") {
             document.getElementById("zonaFiltrosAdmin").classList.remove("opacity-75");
             document.getElementById("filtro_usuario").disabled = false;
@@ -450,10 +448,18 @@
             cargarOpciones("filtro_equipo", datosApp.equipos);
         }
 
+        // --- INICIALIZACIÓN DE LOS BUSCADORES (TomSelect) ---
+        // Buscador del formulario
         if (document.getElementById("lugar").tomselect) {
             document.getElementById("lugar").tomselect.destroy();
         }
         new TomSelect("#lugar", { create: false, sortField: { field: "text", direction: "asc" } });
+
+        // Buscador del panel de filtros
+        if (document.getElementById("filtro_lugar").tomselect) {
+            document.getElementById("filtro_lugar").tomselect.destroy();
+        }
+        new TomSelect("#filtro_lugar", { create: false, sortField: { field: "text", direction: "asc" } });
     }
 
     function configurarFechasPorDefecto() {
@@ -607,16 +613,26 @@
     }
 
     function limpiarFiltrosLaterales() {
-        document.getElementById("filtro_lugar").value = "";
+        // Limpiamos el buscador TomSelect si existe
+        const selectFiltroLugar = document.getElementById("filtro_lugar");
+        if (selectFiltroLugar.tomselect) {
+            selectFiltroLugar.tomselect.clear();
+        } else {
+            selectFiltroLugar.value = "";
+        }
+
+        // Limpiamos el resto de filtros estándar
         document.getElementById("filtro_estado").value = "";
         document.getElementById("filtro_tipo").value = "";
         document.getElementById("filtro_fecha_inicio").value = "";
         document.getElementById("filtro_fecha_fin").value = "";
+        
         if(rolValidado === "admin"){
             document.getElementById("filtro_usuario").value = "";
             document.getElementById("filtro_equipo").value = "";
         }
-        aplicarFiltrosPrincipales(); // Vuelve a los filtros por defecto de la barra
+        
+        aplicarFiltrosPrincipales(); 
     }
 
     // Reemplaza a la antigua cargarListadoTareas

@@ -1,4 +1,3 @@
-<!-- LÓGICA DE LA APLICACIÓN -->
 <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbwCKnOnYSIoBSBZsVOecLPvCu0WWWtzN1hynTFRcwUL23Ph7qN_X414SQU1AkBa-bY/exec';
     

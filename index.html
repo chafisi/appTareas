@@ -333,10 +333,11 @@
         </div>
 
         <!-- Visor del Informe (Boceto estático) -->
+        <!-- Visor del Informe (Boceto estático) -->
         <div id="contenedorResultadoInforme" class="card shadow-sm border-primary">
             <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
                 <h6 class="fw-bold mb-0 text-primary">Vista Previa del Informe</h6>
-                <button class="btn btn-danger btn-sm shadow-sm">
+                <button class="btn btn-danger btn-sm shadow-sm" id="btnExportarPDF">
                     <i class="bi bi-filetype-pdf"></i> Exportar a PDF
                 </button>
             </div>
@@ -346,18 +347,46 @@
                 
                 <h5 class="fw-bold text-dark text-uppercase border-bottom border-dark pb-2 mb-3">OCTUBRE 2026</h5>
                 
-                <!-- Formato: [Lugar | Descripción] [Tipo] [Fechas] [Días] [Equipo] -->
-                <div class="bg-white p-2 border rounded mb-2 shadow-sm" style="font-family: monospace; font-size: 0.85rem;">
-                    <strong>[Ayuntamiento | Reposición de luminarias]</strong> [Mantenimiento] [18/10/2026 - 19/10/2026] [2 Días] [E6-Gestion-admin]
-                </div>
-                <div class="bg-white p-2 border rounded mb-2 shadow-sm" style="font-family: monospace; font-size: 0.85rem;">
-                    <strong>[Colegio San José | Fuga de agua en baños]</strong> [Fontanería] [19/10/2026 - 19/10/2026] [1 Día] [E4-ZV-Solares]
+                <!-- Fila 1 -->
+                <div class="bg-white p-3 border rounded mb-3 shadow-sm d-flex align-items-md-center flex-column flex-md-row gap-3">
+                    <!-- Número de parte destacado -->
+                    <div class="bg-primary text-white rounded px-3 py-2 fw-bold fs-4 shadow-sm text-center" style="min-width: 70px;">
+                        #1
+                    </div>
+                    <!-- Contenido -->
+                    <div class="flex-grow-1">
+                        <div class="mb-1">
+                            <span class="fw-bold text-dark fs-5 me-2">Ayuntamiento</span>
+                            <span class="fst-italic text-secondary">Reposición de luminarias</span>
+                        </div>
+                        <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mt-md-1">
+                            <span class="badge bg-secondary px-2 py-1">Mantenimiento</span>
+                            <span class="text-dark small border px-2 py-1 rounded bg-light"><i class="bi bi-calendar-event text-muted"></i> 18/10/2026 - 19/10/2026</span>
+                            <span class="badge bg-info text-dark px-2 py-1">2 Días</span>
+                            <span class="badge bg-dark px-2 py-1">E6-Gestion-admin</span>
+                        </div>
+                    </div>
                 </div>
 
-                <h5 class="fw-bold text-dark text-uppercase border-bottom border-dark pb-2 mt-4 mb-3">NOVIEMBRE 2026</h5>
-                
-                <div class="bg-white p-2 border rounded mb-2 shadow-sm" style="font-family: monospace; font-size: 0.85rem;">
-                    <strong>[Polideportivo | Pintura de pistas de pádel]</strong> [Pintura] [02/11/2026 - 05/11/2026] [4 Días] [E1-Pintura]
+                <!-- Fila 2 -->
+                <div class="bg-white p-3 border rounded mb-3 shadow-sm d-flex align-items-md-center flex-column flex-md-row gap-3">
+                    <!-- Número de parte destacado -->
+                    <div class="bg-primary text-white rounded px-3 py-2 fw-bold fs-4 shadow-sm text-center" style="min-width: 70px;">
+                        #2
+                    </div>
+                    <!-- Contenido -->
+                    <div class="flex-grow-1">
+                        <div class="mb-1">
+                            <span class="fw-bold text-dark fs-5 me-2">Colegio San José</span>
+                            <span class="fst-italic text-secondary">Fuga de agua en baños de la planta baja</span>
+                        </div>
+                        <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mt-md-1">
+                            <span class="badge bg-secondary px-2 py-1">Fontanería</span>
+                            <span class="text-dark small border px-2 py-1 rounded bg-light"><i class="bi bi-calendar-event text-muted"></i> 19/10/2026 - 19/10/2026</span>
+                            <span class="badge bg-warning text-dark px-2 py-1">1 Día</span>
+                            <span class="badge bg-dark px-2 py-1">E4-ZV-Solares</span>
+                        </div>
+                    </div>
                 </div>
 
             </div>

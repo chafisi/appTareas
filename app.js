@@ -668,6 +668,10 @@ document.getElementById("filtroMes").addEventListener("change", aplicarFiltrosPr
 // MÓDULO DE INFORMES
 // ==========================================
 
+// ==========================================
+// MÓDULO DE INFORMES
+// ==========================================
+
 function generarInforme() {
     const fechaInicioVal = document.getElementById("informe_fecha_inicio").value;
     const fechaFinVal = document.getElementById("informe_fecha_fin").value;
@@ -677,20 +681,21 @@ function generarInforme() {
         return;
     }
 
-    // Si no hay fecha fin, usamos la misma que la de inicio (1 solo día)
+    // Si no hay fecha fin, usamos la misma que la de inicio
     const dInicio = new Date(fechaInicioVal);
     const dFin = fechaFinVal ? new Date(fechaFinVal) : new Date(fechaInicioVal);
 
-    // Obtenemos las tareas según el rol (el admin las ve todas)
     let tareas = obtenerMisTareasBase();
 
-    // Filtramos las que caigan en ese rango temporal (usamos su fecha de inicio)
+    // Filtrar por fechas
     let tareasFiltradas = tareas.filter(t => {
-        const fTarea = new Date(convertirAFechaInput(t.fecha_inicio));
+        const fTareaStr = convertirAFechaInput(t.fecha_inicio);
+        if (!fTareaStr) return false;
+        const fTarea = new Date(fTareaStr);
         return fTarea >= dInicio && fTarea <= dFin;
     });
 
-    // Ordenamos cronológicamente (las más antiguas primero)
+    // Ordenar cronológicamente
     tareasFiltradas.sort((a, b) => new Date(convertirAFechaInput(a.fecha_inicio)) - new Date(convertirAFechaInput(b.fecha_inicio)));
 
     renderizarInforme(tareasFiltradas);
@@ -705,20 +710,27 @@ function renderizarInforme(lista) {
         return;
     }
 
-    // Agrupamos por Mes y Año
+    // 1. LEEMOS LOS CHECKBOXES UNA SOLA VEZ AL PRINCIPIO
+    // (Usamos un operador ternario por si acaso el HTML no cargó bien, por defecto en true)
+    const verTipo = document.getElementById("chk_inf_tipo") ? document.getElementById("chk_inf_tipo").checked : true;
+    const verFechas = document.getElementById("chk_inf_fechas") ? document.getElementById("chk_inf_fechas").checked : true;
+    const verDias = document.getElementById("chk_inf_dias") ? document.getElementById("chk_inf_dias").checked : true;
+    const verEquipo = document.getElementById("chk_inf_equipo") ? document.getElementById("chk_inf_equipo").checked : true;
+
+    // 2. Agrupamos por meses
     const tareasPorMes = {};
     lista.forEach(tarea => {
         let mesAnio = "FECHA DESCONOCIDA";
         const fInput = convertirAFechaInput(tarea.fecha_inicio);
         const d = new Date(fInput);
         if (!isNaN(d)) {
-            // Formato: "OCTUBRE 2026"
             mesAnio = d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).toUpperCase();
         }
         if(!tareasPorMes[mesAnio]) tareasPorMes[mesAnio] = [];
         tareasPorMes[mesAnio].push(tarea);
     });
 
+    // 3. Dibujamos el HTML
     let html = "";
     let contadorParte = 1;
 
@@ -726,21 +738,35 @@ function renderizarInforme(lista) {
         html += `<h5 class="fw-bold text-dark text-uppercase border-bottom border-dark pb-2 mt-4 mb-3">${mes}</h5>`;
 
         tareas.forEach(tarea => {
-            // --- DENTRO DE renderizarInforme, DENTRO DEL forEach ---
-                
-            // Leemos qué ha marcado el usuario
-            const verTipo = document.getElementById("chk_inf_tipo").checked;
-            const verFechas = document.getElementById("chk_inf_fechas").checked;
-            const verDias = document.getElementById("chk_inf_dias").checked;
-            const verEquipo = document.getElementById("chk_inf_equipo").checked;
+            const nombreLugar = datosApp.clientes.find(c => c.id === tarea.lugar)?.nombre || tarea.lugar;
+            const nombreTipo = datosApp.tipologias.find(t => t.id === tarea.tipo)?.nombre || tarea.tipo;
+            const nombreEquipo = datosApp.equipos.find(e => e.id === tarea.equipo)?.nombre || tarea.equipo;
+            
+            const fIniCorta = formatoFechaCorta(tarea.fecha_inicio);
+            const fFinCorta = formatoFechaCorta(tarea.fecha_fin);
 
-            // Construimos solo las etiquetas seleccionadas
+            const dIniT = new Date(convertirAFechaInput(tarea.fecha_inicio));
+            const dFinT = new Date(convertirAFechaInput(tarea.fecha_fin));
+            let dias = 1;
+            if (!isNaN(dIniT) && !isNaN(dFinT)) {
+                const difTiempo = Math.abs(dFinT - dIniT);
+                dias = Math.ceil(difTiempo / (1000 * 60 * 60 * 24)) + 1; 
+            }
+            const textoDias = dias === 1 ? "1 Día" : `${dias} Días`;
+            
+            let colorDias = "bg-info text-dark";
+            if (dias === 1) colorDias = "bg-success";
+            else if (dias > 3) colorDias = "bg-danger";
+            else if (dias > 1) colorDias = "bg-warning text-dark";
+
+            // 4. APLICAMOS LA LÓGICA DE LOS CHECKBOXES AQUÍ
             let etiquetasHtml = "";
             if (verTipo) etiquetasHtml += `<span class="badge bg-secondary px-2 py-1">${nombreTipo}</span> `;
             if (verFechas) etiquetasHtml += `<span class="text-dark small border px-2 py-1 rounded bg-light"><i class="bi bi-calendar-event text-muted"></i> ${fIniCorta} - ${fFinCorta}</span> `;
             if (verDias) etiquetasHtml += `<span class="badge ${colorDias} px-2 py-1">${textoDias}</span> `;
             if (verEquipo) etiquetasHtml += `<span class="badge bg-dark px-2 py-1">${nombreEquipo}</span>`;
 
+            // 5. Ensamblamos la fila
             html += `
                 <div class="bg-white p-3 border rounded mb-3 shadow-sm d-flex align-items-md-center flex-column flex-md-row gap-3 html2pdf__page-break-avoid">
                     <div class="bg-primary text-white rounded px-3 py-2 fw-bold fs-4 shadow-sm text-center" style="min-width: 70px;">

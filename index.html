@@ -326,6 +326,27 @@
                             * Si lo dejas en blanco, solo se hará el informe del día de inicio.
                         </div>
                     </div>
+
+                    <!-- Checkboxes para personalizar columnas -->
+                    <div class="col-12 mt-3 pt-3 border-top">
+                        <span class="small fw-bold text-muted me-3"><i class="bi bi-sliders"></i> MOSTRAR EN INFORME:</span>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chk_inf_tipo" checked>
+                            <label class="form-check-label small" for="chk_inf_tipo">Tipo trabajo</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chk_inf_fechas" checked>
+                            <label class="form-check-label small" for="chk_inf_fechas">Fechas</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chk_inf_dias" checked>
+                            <label class="form-check-label small" for="chk_inf_dias">Nº de Días</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chk_inf_equipo" checked>
+                            <label class="form-check-label small" for="chk_inf_equipo">Equipo</label>
+                        </div>
+                    </div>
                     <div class="col-md-3 d-flex align-items-end mt-4 mt-md-0">
                         <button class="btn btn-primary w-100 shadow-sm" style="height: 38px;" onclick="generarInforme()">
                             <i class="bi bi-lightning-charge"></i> Generar informe
@@ -348,46 +369,23 @@
             <!-- El aspecto final de las líneas del informe -->
             <div class="card-body bg-light p-4" id="informeVisual">
                 
-                <h5 class="fw-bold text-dark text-uppercase border-bottom border-dark pb-2 mb-3">OCTUBRE 2026</h5>
-                
-                <!-- Fila 1 -->
-                <div class="bg-white p-3 border rounded mb-3 shadow-sm d-flex align-items-md-center flex-column flex-md-row gap-3">
-                    <!-- Número de parte destacado -->
-                    <div class="bg-primary text-white rounded px-3 py-2 fw-bold fs-4 shadow-sm text-center" style="min-width: 70px;">
-                        #1
-                    </div>
-                    <!-- Contenido -->
-                    <div class="flex-grow-1">
-                        <div class="mb-1">
-                            <span class="fw-bold text-dark fs-5 me-2">Ayuntamiento</span>
-                            <span class="fst-italic text-secondary">Reposición de luminarias</span>
-                        </div>
-                        <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mt-md-1">
-                            <span class="badge bg-secondary px-2 py-1">Mantenimiento</span>
-                            <span class="text-dark small border px-2 py-1 rounded bg-light"><i class="bi bi-calendar-event text-muted"></i> 18/10/2026 - 19/10/2026</span>
-                            <span class="badge bg-info text-dark px-2 py-1">2 Días</span>
-                            <span class="badge bg-dark px-2 py-1">E6-Gestion-admin</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Fila 2 -->
-                <div class="bg-white p-3 border rounded mb-3 shadow-sm d-flex align-items-md-center flex-column flex-md-row gap-3">
-                    <!-- Número de parte destacado -->
-                    <div class="bg-primary text-white rounded px-3 py-2 fw-bold fs-4 shadow-sm text-center" style="min-width: 70px;">
-                        #2
-                    </div>
-                    <!-- Contenido -->
-                    <div class="flex-grow-1">
-                        <div class="mb-1">
-                            <span class="fw-bold text-dark fs-5 me-2">Colegio San José</span>
-                            <span class="fst-italic text-secondary">Fuga de agua en baños de la planta baja</span>
-                        </div>
-                        <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mt-md-1">
-                            <span class="badge bg-secondary px-2 py-1">Fontanería</span>
-                            <span class="text-dark small border px-2 py-1 rounded bg-light"><i class="bi bi-calendar-event text-muted"></i> 19/10/2026 - 19/10/2026</span>
-                            <span class="badge bg-warning text-dark px-2 py-1">1 Día</span>
-                            <span class="badge bg-dark px-2 py-1">E4-ZV-Solares</span>
+                <div class="text-center text-muted py-4">
+                    <p class="small mb-3">El informe se generará con este formato básico. Usa los <strong>[x]</strong> de arriba para ocultar datos.</p>
+                    
+                    <!-- Plantilla vacía de ejemplo -->
+                    <div class="bg-white p-3 border rounded shadow-sm d-flex align-items-md-center flex-column flex-md-row gap-3 text-start mx-auto opacity-75" style="max-width: 900px; pointer-events: none;">
+                        <div class="bg-secondary text-white rounded px-3 py-2 fw-bold fs-4 text-center" style="min-width: 70px;">#</div>
+                        <div class="flex-grow-1">
+                            <div class="mb-1">
+                                <span class="fw-bold text-dark fs-5 me-2">[Lugar del trabajo]</span>
+                                <span class="fst-italic text-secondary">[Descripción corta]</span>
+                            </div>
+                            <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mt-md-1">
+                                <span class="badge bg-secondary px-2 py-1">[Tipo]</span>
+                                <span class="text-dark small border px-2 py-1 rounded bg-light"><i class="bi bi-calendar-event text-muted"></i> [Inicio] - [Fin]</span>
+                                <span class="badge bg-info text-dark px-2 py-1">[Días]</span>
+                                <span class="badge bg-dark px-2 py-1">[Equipo]</span>
+                            </div>
                         </div>
                     </div>
                 </div>

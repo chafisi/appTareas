@@ -726,29 +726,20 @@ function renderizarInforme(lista) {
         html += `<h5 class="fw-bold text-dark text-uppercase border-bottom border-dark pb-2 mt-4 mb-3">${mes}</h5>`;
 
         tareas.forEach(tarea => {
-            // Buscamos nombres amigables en diccionarios
-            const nombreLugar = datosApp.clientes.find(c => c.id === tarea.lugar)?.nombre || tarea.lugar;
-            const nombreTipo = datosApp.tipologias.find(t => t.id === tarea.tipo)?.nombre || tarea.tipo;
-            const nombreEquipo = datosApp.equipos.find(e => e.id === tarea.equipo)?.nombre || tarea.equipo;
-            
-            const fIniCorta = formatoFechaCorta(tarea.fecha_inicio);
-            const fFinCorta = formatoFechaCorta(tarea.fecha_fin);
+            // --- DENTRO DE renderizarInforme, DENTRO DEL forEach ---
+                
+            // Leemos qué ha marcado el usuario
+            const verTipo = document.getElementById("chk_inf_tipo").checked;
+            const verFechas = document.getElementById("chk_inf_fechas").checked;
+            const verDias = document.getElementById("chk_inf_dias").checked;
+            const verEquipo = document.getElementById("chk_inf_equipo").checked;
 
-            // Cálculo estricto de días (Inclusivo: del 19 al 19 = 1 día)
-            const dIniT = new Date(convertirAFechaInput(tarea.fecha_inicio));
-            const dFinT = new Date(convertirAFechaInput(tarea.fecha_fin));
-            let dias = 1;
-            if (!isNaN(dIniT) && !isNaN(dFinT)) {
-                const difTiempo = Math.abs(dFinT - dIniT);
-                dias = Math.ceil(difTiempo / (1000 * 60 * 60 * 24)) + 1; 
-            }
-            const textoDias = dias === 1 ? "1 Día" : `${dias} Días`;
-            
-            // Color dinámico según los días trabajados
-            let colorDias = "bg-info text-dark";
-            if (dias === 1) colorDias = "bg-success";
-            else if (dias > 3) colorDias = "bg-danger";
-            else if (dias > 1) colorDias = "bg-warning text-dark";
+            // Construimos solo las etiquetas seleccionadas
+            let etiquetasHtml = "";
+            if (verTipo) etiquetasHtml += `<span class="badge bg-secondary px-2 py-1">${nombreTipo}</span> `;
+            if (verFechas) etiquetasHtml += `<span class="text-dark small border px-2 py-1 rounded bg-light"><i class="bi bi-calendar-event text-muted"></i> ${fIniCorta} - ${fFinCorta}</span> `;
+            if (verDias) etiquetasHtml += `<span class="badge ${colorDias} px-2 py-1">${textoDias}</span> `;
+            if (verEquipo) etiquetasHtml += `<span class="badge bg-dark px-2 py-1">${nombreEquipo}</span>`;
 
             html += `
                 <div class="bg-white p-3 border rounded mb-3 shadow-sm d-flex align-items-md-center flex-column flex-md-row gap-3 html2pdf__page-break-avoid">
@@ -761,10 +752,7 @@ function renderizarInforme(lista) {
                             <span class="fst-italic text-secondary">${tarea.descripcion_corta}</span>
                         </div>
                         <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mt-md-1">
-                            <span class="badge bg-secondary px-2 py-1">${nombreTipo}</span>
-                            <span class="text-dark small border px-2 py-1 rounded bg-light"><i class="bi bi-calendar-event text-muted"></i> ${fIniCorta} - ${fFinCorta}</span>
-                            <span class="badge ${colorDias} px-2 py-1">${textoDias}</span>
-                            <span class="badge bg-dark px-2 py-1">${nombreEquipo}</span>
+                            ${etiquetasHtml}
                         </div>
                     </div>
                 </div>

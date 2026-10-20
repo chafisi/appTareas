@@ -427,7 +427,7 @@ function renderizarTareas(listaTareas) {
                                 <span class="badge ${badgeColor} px-2 py-1">${nombreEstado}</span>
                                 <span class="badge bg-secondary px-2 py-1">${nombreTipo}</span>
                                 <span class="text-dark small border px-2 py-1 rounded bg-light"><i class="bi bi-calendar-event text-muted"></i> ${fInicioCorta} - ${fFinCorta}</span>
-                                <i> ${badgeCompaneros}</i>
+                                ${badgeCompaneros}
                             </div>
                         </div>
 

@@ -487,21 +487,6 @@
 
     // --- 3. LISTADO Y EDICIÓN ---
 
-    // Función auxiliar inteligente para forzar la fecha al formato AAAA-MM-DD que exige el formulario
-    function convertirAFechaInput(fechaStr) {
-        if (!fechaStr) return new Date().toISOString().split('T')[0];
-        try {
-            let p = fechaStr.split(/[-/]/);
-            if(p.length === 3) {
-                let year = p[0].length === 4 ? p[0] : p[2];
-                let day = p[0].length === 4 ? p[2] : p[0];
-                let month = p[1];
-                if(year.length === 2) year = "20" + year;
-                return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-            }
-        } catch(e) {}
-        return new Date().toISOString().split('T')[0];
-    }// Función auxiliar inteligente y blindada para forzar la fecha al formato AAAA-MM-DD
     function convertirAFechaInput(fechaStr) {
         if (!fechaStr) return new Date().toISOString().split('T')[0];
         

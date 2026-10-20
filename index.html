@@ -311,20 +311,32 @@
                 <i class="bi bi-gear"></i> CONFIGURACIÓN: INFORME GLOBAL
             </div>
             <div class="card-body">
-                <div class="row g-3 align-items-center">
-                    <div class="col-md-4">
+                <!-- Fila principal de Fechas, Observaciones y Botón -->
+                <div class="row g-3">
+                    <div class="col-md-3">
                         <label class="form-label small fw-bold text-muted">FECHA INICIO</label>
                         <input type="date" class="form-control" id="informe_fecha_inicio">
-                        <div class="form-text text-warning fw-bold" style="font-size: 0.75rem;">
-                            * Día de inicio.
-                        </div>
                     </div>
-                    <div class="col-md-5">
+                    
+                    <div class="col-md-3">
                         <label class="form-label small fw-bold text-muted">FECHA FIN (Opcional)</label>
                         <input type="date" class="form-control" id="informe_fecha_fin">
-                        <div class="form-text text-warning fw-bold" style="font-size: 0.75rem;">
-                            * Si lo dejas en blanco, solo se hará el informe del día de inicio.
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">OBSERVACIONES</label>
+                        <!-- Aquí aplicamos la cursiva (fst-italic) y un tono gris suave (text-secondary) -->
+                        <div class="text-secondary fst-italic mt-1" style="font-size: 0.8rem; line-height: 1.4;">
+                            * Día de inicio -> Obligatorio.<br>
+                            * Día fin vacío -> El informe será del día seleccionado.
                         </div>
+                    </div>
+
+                    <!-- Para que el botón quede alineado abajo con los inputs, usamos pt-4 -->
+                    <div class="col-md-2 pt-4">
+                        <button class="btn btn-primary w-100 shadow-sm" style="height: 38px;" onclick="generarInforme()">
+                            Generar
+                        </button>
                     </div>
 
                     <!-- Checkboxes para personalizar columnas -->
@@ -346,11 +358,6 @@
                             <input class="form-check-input" type="checkbox" id="chk_inf_equipo" checked>
                             <label class="form-check-label small" for="chk_inf_equipo">Equipo</label>
                         </div>
-                    </div>
-                    <div class="col-md-3 d-flex align-items-end mt-4 mt-md-0">
-                        <button class="btn btn-primary w-100 shadow-sm" style="height: 38px;" onclick="generarInforme()">
-                            <i class="bi bi-lightning-charge"></i> Generar informe
-                        </button>
                     </div>
                 </div>
             </div>

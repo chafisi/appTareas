@@ -487,47 +487,17 @@
 
     // --- 3. LISTADO Y EDICIÓN ---
 
+    // 1. Para el formulario (Intenta mantener el formato de input date, o lo deja como texto crudo)
     function convertirAFechaInput(fechaStr) {
-        if (!fechaStr) return new Date().toISOString().split('T')[0];
-        
-        try {
-            // 1. Limpiamos cualquier rastro de hora o zona horaria (cortamos por la 'T' o por un espacio en blanco)
-            let soloFecha = fechaStr.toString().split('T')[0].split(' ')[0];
-            
-            // 2. Troceamos lo que queda usando guiones o barras
-            let partes = soloFecha.split(/[-/]/);
-            
-            if (partes.length === 3) {
-                let year, month, day;
-                
-                // 3. Averiguamos si viene al revés (AAAA-MM-DD) o normal (DD/MM/AAAA)
-                if (partes[0].length === 4) {
-                    year = partes[0];
-                    month = partes[1];
-                    day = partes[2];
-                } else {
-                    day = partes[0];
-                    month = partes[1];
-                    year = partes[2];
-                    // Si el año viniera con 2 dígitos (ej: "26"), le añadimos el "20"
-                    if (year.length === 2) year = "20" + year; 
-                }
-                
-                // 4. Forzamos que día y mes tengan siempre 2 dígitos (ej: 5 -> 05)
-                return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-            }
-        } catch(e) {
-            console.error("No se pudo parsear la fecha: ", fechaStr);
-        }
-        
-        // Si absolutamente todo falla, devolvemos la fecha de hoy
-        return new Date().toISOString().split('T')[0];
+        if (!fechaStr) return "";
+        // Devuelve el dato crudo cortando solo si lleva la "T" o el espacio de la hora
+        return fechaStr.toString().split('T')[0].split(' ')[0]; 
     }
 
-    // Función auxiliar para acortar fechas en el listado (Ej: 18/10/26)
+    // 2. Para el listado visual (Muestra EXACTAMENTE lo que hay en Google Sheets)
     function formatoFechaCorta(fechaStr) {
-        const f = convertirAFechaInput(fechaStr).split('-');
-        return `${f[2]}/${f[1]}/${f[0].slice(-2)}`;
+        if (!fechaStr) return "Sin fecha";
+        return fechaStr.toString().split('T')[0].split(' ')[0];
     }
 
     // --- MOTOR DE BÚSQUEDA Y FILTRADO ---

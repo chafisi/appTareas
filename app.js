@@ -433,7 +433,7 @@ function renderizarTareas(listaTareas) {
 
                         <!-- Botones de Acción a la derecha -->
                         <div class="d-flex flex-row flex-md-column gap-2 justify-content-end" style="min-width: 120px;">
-                            <button class="btn btn-sm btn-outline-primary w-100 fw-bold shadow-sm" onclick="prepararEdicion('${tarea.id}')">
+                            <button class="btn btn-sm btn-outline-primary w-100 fw-bold shadow-sm" onclick="prepararEdicion('${tarea.id}', 'list-section')">
                                 <i class="bi bi-pencil-square"></i> Modificar
                             </button>
                             <button class="btn btn-sm btn-outline-danger w-100 fw-bold shadow-sm" onclick="eliminarTarea('${tarea.id}')">
@@ -448,7 +448,7 @@ function renderizarTareas(listaTareas) {
         contenedor.innerHTML = htmlLista;
     }
 
-function prepararEdicion(idTarea) {
+function prepararEdicion(idTarea, origen = 'list-section') {
     const tarea = datosApp.tareas.find(t => t.id === idTarea);
     if(!tarea) return;
 
@@ -513,11 +513,20 @@ function prepararEdicion(idTarea) {
     document.querySelector("#form-section .card-title").innerText = "Modificar Parte";
     document.getElementById("btnEnviarParte").innerHTML = '<i class="bi bi-arrow-repeat"></i> Actualizar Parte';
     
-    // Cambiamos el texto y acción del botón volver
+    // 2. JUSTO AL FINAL DE LA FUNCIÓN (antes de navegarA), añade esto:
     const btnVolver = document.querySelector("#form-section .btn-outline-secondary");
-    if(btnVolver) btnVolver.innerHTML = '<i class="bi bi-arrow-left"></i> Volver al listado';
+    if (btnVolver) {
+        if (origen === 'informes-section') {
+            btnVolver.innerHTML = '<i class="bi bi-arrow-left"></i> Volver a Informes';
+            btnVolver.setAttribute("onclick", "limpiarFormulario(); navegarA('informes-section')");
+        } else {
+            btnVolver.innerHTML = '<i class="bi bi-arrow-left"></i> Volver al Listado';
+            btnVolver.setAttribute("onclick", "limpiarFormulario(); navegarA('list-section')");
+        }
+    }
 
     navegarA('form-section');
+
 }
 
 // Navegación inteligente al cancelar/terminar de editar
@@ -541,7 +550,10 @@ function limpiarFormulario() {
     btn.disabled = false; // <--- ESTO ARREGLA EL BLOQUEO
     
     const btnVolver = document.querySelector("#form-section .btn-outline-secondary");
-    if(btnVolver) btnVolver.innerHTML = '<i class="bi bi-arrow-left"></i> Volver al menú';
+        if(btnVolver) {
+            btnVolver.innerHTML = '<i class="bi bi-arrow-left"></i> Volver al menú';
+            btnVolver.setAttribute("onclick", "limpiarFormulario(); navegarA('menu-section')");
+        }
 }
 
 function accionVolver() {
@@ -818,7 +830,7 @@ function renderizarInforme(lista) {
                         
                         <!-- NUEVO BOTÓN: Solo visible en pantalla, invisible en el PDF -->
                         <div class="d-flex justify-content-end mt-3 mt-md-0" data-html2canvas-ignore="true">
-                            <button class="btn btn-sm btn-outline-primary fw-bold shadow-sm" onclick="prepararEdicion('${tarea.id}')">
+                            <button class="btn btn-sm btn-outline-primary fw-bold shadow-sm" onclick="prepararEdicion('${tarea.id}', 'informes-section')">
                                 <i class="bi bi-pencil-square"></i> Ver / Editar
                             </button>
                         </div>

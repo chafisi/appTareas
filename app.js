@@ -781,8 +781,8 @@ function renderizarInforme(lista) {
             if (verDias) etiquetasHtml += `<span class="badge ${colorDias} px-2 py-1">${textoDias}</span> `;
             if (verEquipo) etiquetasHtml += `<span class="badge bg-dark px-2 py-1">${nombreEquipo}</span>`;
 
-            // 5. Ensamblamos la fila
-            html += `
+            // 5. Ensamblamos la fila --> antiguo
+            /*html += `
                 <div class="bg-white p-3 border rounded mb-3 shadow-sm d-flex align-items-md-center flex-column flex-md-row gap-3 html2pdf__page-break-avoid">
                     <div class="bg-primary text-white rounded px-3 py-2 fw-bold fs-4 shadow-sm text-center" style="min-width: 70px;">
                         #${contadorParte}
@@ -798,7 +798,33 @@ function renderizarInforme(lista) {
                     </div>
                 </div>
             `;
-            contadorParte++;
+            
+            contadorParte++;*/
+            // 5. Ensamblamos la fila
+                html += `
+                    <div class="bg-white p-3 border rounded mb-3 shadow-sm d-flex align-items-md-center flex-column flex-md-row gap-3 html2pdf__page-break-avoid">
+                        <div class="bg-primary text-white rounded px-3 py-2 fw-bold fs-4 shadow-sm text-center" style="min-width: 70px;">
+                            #${contadorParte}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="mb-1">
+                                <span class="fw-bold text-dark fs-5 me-2">${nombreLugar}</span>
+                                <span class="fst-italic text-secondary">${tarea.descripcion_corta}</span>
+                            </div>
+                            <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mt-md-1">
+                                ${etiquetasHtml}
+                            </div>
+                        </div>
+                        
+                        <!-- NUEVO BOTÓN: Solo visible en pantalla, invisible en el PDF -->
+                        <div class="d-flex justify-content-end mt-3 mt-md-0" data-html2canvas-ignore="true">
+                            <button class="btn btn-sm btn-outline-primary fw-bold shadow-sm" onclick="prepararEdicion('${tarea.id}')">
+                                <i class="bi bi-pencil-square"></i> Ver / Editar
+                            </button>
+                        </div>
+                    </div>
+                `;
+                contadorParte++;
         });
     }
     contenedor.innerHTML = html;

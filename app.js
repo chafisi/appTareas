@@ -347,91 +347,106 @@ function eliminarTarea(idTarea) {
 }
 
 function renderizarTareas(listaTareas) {
-    const contenedor = document.getElementById("contenedorListaTareas");
-    contenedor.innerHTML = ""; 
-    
-    if(listaTareas.length === 0) {
-        contenedor.innerHTML = "<p class='text-muted text-center mt-4'><i class='bi bi-inbox'></i> No se encontraron partes con estos filtros.</p>";
-        return;
-    }
-
-    const tareasPorMes = {};
-    listaTareas.forEach(tarea => {
-        let mesAnio = "Fecha Desconocida";
-        const fechaInput = convertirAFechaInput(tarea.fecha_inicio);
-        const d = new Date(fechaInput);
-        if (!isNaN(d)) {
-            mesAnio = d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-        }
-        if(!tareasPorMes[mesAnio]) tareasPorMes[mesAnio] = [];
-        tareasPorMes[mesAnio].push(tarea);
-    });
-
-    let htmlLista = "";
-    for (const [mes, tareas] of Object.entries(tareasPorMes)) {
-        htmlLista += `<h6 class="fw-bold text-primary mt-4 mb-3 text-uppercase border-bottom border-primary border-2 pb-1 d-inline-block">${mes}</h6>`;
-        htmlLista += `<div class="list-group shadow-sm mb-4">`;
+        const contenedor = document.getElementById("contenedorListaTareas");
+        contenedor.innerHTML = ""; 
         
-        tareas.forEach(tarea => {
-            const nombreLugar = datosApp.clientes.find(c => c.id === tarea.lugar)?.nombre || "Lugar desconocido";
-            const nombreEstado = datosApp.estados.find(e => e.id === tarea.estado)?.nombre || tarea.estado;
-            const fInicioCorta = formatoFechaCorta(tarea.fecha_inicio);
-            const fFinCorta = formatoFechaCorta(tarea.fecha_fin);
-            
-            let badgeColor = "bg-info text-dark";
-            let iconEstado = "bi-info-circle";
+        if(listaTareas.length === 0) {
+            contenedor.innerHTML = "<div class='text-center text-muted mt-5 mb-5'><i class='bi bi-inbox fs-1'></i><p>No se encontraron partes con estos filtros.</p></div>";
+            return;
+        }
 
-            //v14
-            let badgeCompaneros = "";
-            // Si la tarea no es mía, pero estoy en la lista de compañeros
-            if (tarea.usuario !== usuarioValidado && tarea.companeros && tarea.companeros.includes(usuarioValidado)) {
-                badgeCompaneros = `<span class="badge bg-secondary"><i class="bi bi-people-fill"></i> Compartida contigo</span>`;
-            } 
-            // Si la tarea es mía y he añadido compañeros
-            else if (tarea.usuario === usuarioValidado && tarea.companeros && tarea.companeros !== "") {
-                badgeCompaneros = `<span class="badge bg-light text-dark border"><i class="bi bi-people"></i> Trabajo en equipo</span>`;
+        // Agrupamos por mes (Igual que en los informes)
+        const tareasPorMes = {};
+        listaTareas.forEach(tarea => {
+            let mesAnio = "FECHA DESCONOCIDA";
+            const fInput = convertirAFechaInput(tarea.fecha_inicio);
+            const d = new Date(fInput);
+            if (!isNaN(d)) {
+                // Formato en mayúsculas como en el informe
+                mesAnio = d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).toUpperCase();
             }
+            if(!tareasPorMes[mesAnio]) tareasPorMes[mesAnio] = [];
+            tareasPorMes[mesAnio].push(tarea);
+        });
 
-            const estadoLower = nombreEstado.toLowerCase();
+        let htmlLista = "";
+        
+        for (const [mes, tareas] of Object.entries(tareasPorMes)) {
+            // Título del mes idéntico al informe
+            htmlLista += `<h5 class="fw-bold text-dark text-uppercase border-bottom border-dark pb-2 mt-4 mb-3">${mes}</h5>`;
             
-            if(estadoLower.includes("pendiente") || estadoLower.includes("curso")) {
-                badgeColor = "bg-warning text-dark";
-                iconEstado = "bi-clock-history";
-            } else if(estadoLower.includes("resuelto") || estadoLower.includes("cerrado") || estadoLower.includes("fin")) {
-                badgeColor = "bg-success text-white";
-                iconEstado = "bi-check-circle";
-            }
+            tareas.forEach(tarea => {
+                const nombreLugar = datosApp.clientes.find(c => c.id === tarea.lugar)?.nombre || "Lugar desconocido";
+                const nombreEstado = datosApp.estados.find(e => e.id === tarea.estado)?.nombre || tarea.estado;
+                const nombreTipo = datosApp.tipologias.find(t => t.id === tarea.tipo)?.nombre || tarea.tipo;
+                
+                const fInicioCorta = formatoFechaCorta(tarea.fecha_inicio);
+                const fFinCorta = formatoFechaCorta(tarea.fecha_fin);
+                
+                // Lógica de colores para el Estado y la Caja Gigante
+                let badgeColor = "bg-info text-dark";
+                let iconEstado = "bi-info-circle";
+                let colorCajaIzquierda = "bg-info text-white";
+                
+                const estadoLower = nombreEstado.toLowerCase();
+                
+                if(estadoLower.includes("pendiente") || estadoLower.includes("curso") || estadoLower.includes("proceso")) {
+                    badgeColor = "bg-warning text-dark";
+                    iconEstado = "bi-clock-history";
+                    colorCajaIzquierda = "bg-warning text-dark"; // Amarillo es difícil de leer con texto blanco
+                } else if(estadoLower.includes("resuelto") || estadoLower.includes("cerrado") || estadoLower.includes("fin")) {
+                    badgeColor = "bg-success text-white";
+                    iconEstado = "bi-check-circle";
+                    colorCajaIzquierda = "bg-success text-white";
+                }
 
-            htmlLista += `
-                <div class="list-group-item p-3">
-                    <div class="row align-items-center g-3">
-                        <div class="col-12 col-md-9">
-                            <div class="d-flex justify-content-between align-items-start mb-1">
-                                <h5 class="fw-bold mb-0">${nombreLugar}</h5>
+                // Lógica de insignias para Compañeros
+                let badgeCompaneros = "";
+                if (tarea.usuario !== usuarioValidado && tarea.companeros && tarea.companeros.includes(usuarioValidado)) {
+                    badgeCompaneros = `<span class="badge bg-secondary px-2 py-1"><i class="bi bi-people-fill"></i> Compartida contigo</span>`;
+                } else if (tarea.usuario === usuarioValidado && tarea.companeros && tarea.companeros !== "") {
+                    badgeCompaneros = `<span class="text-dark small border px-2 py-1 rounded bg-light"><i class="bi bi-people"></i> Trabajo en equipo</span>`;
+                }
+
+                // Ensamblamos el "Ticket"
+                htmlLista += `
+                    <div class="bg-white p-3 border rounded mb-3 shadow-sm d-flex align-items-md-center flex-column flex-md-row gap-3">
+                        
+                        <!-- Caja visual gigante a la izquierda (Estado) -->
+                        <div class="${colorCajaIzquierda} rounded px-3 py-2 shadow-sm d-flex align-items-center justify-content-center" style="min-width: 70px; min-height: 70px;">
+                            <i class="bi ${iconEstado} fs-2"></i>
+                        </div>
+                        
+                        <!-- Contenido Central -->
+                        <div class="flex-grow-1">
+                            <div class="mb-1">
+                                <span class="fw-bold text-dark fs-5 me-2">${nombreLugar}</span>
+                                <span class="fst-italic text-secondary">${tarea.descripcion_corta}</span>
                             </div>
-                            <p class="text-muted mb-2">${tarea.descripcion_corta}</p>
-                            <div class="d-flex flex-wrap gap-2">
-                                <span class="badge bg-light text-dark border"><i class="bi bi-calendar-event text-secondary"></i> ${fInicioCorta} - ${fFinCorta}</span>
-                                <span class="badge ${badgeColor}"><i class="bi ${iconEstado}"></i> ${nombreEstado} </span>
-                                <i> ${badgeCompaneros}</i>
+                            <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mt-md-1">
+                                <span class="badge ${badgeColor} px-2 py-1">${nombreEstado}</span>
+                                <span class="badge bg-secondary px-2 py-1">${nombreTipo}</span>
+                                <span class="text-dark small border px-2 py-1 rounded bg-light"><i class="bi bi-calendar-event text-muted"></i> ${fInicioCorta} - ${fFinCorta}</span>
+                                ${badgeCompaneros}
                             </div>
                         </div>
-                        <div class="col-12 col-md-3 d-flex flex-row flex-md-column gap-2 justify-content-end">
-                            <button class="btn btn-sm btn-outline-primary w-100" onclick="prepararEdicion('${tarea.id}')">
+
+                        <!-- Botones de Acción a la derecha -->
+                        <div class="d-flex flex-row flex-md-column gap-2 justify-content-end" style="min-width: 120px;">
+                            <button class="btn btn-sm btn-outline-primary w-100 fw-bold shadow-sm" onclick="prepararEdicion('${tarea.id}')">
                                 <i class="bi bi-pencil-square"></i> Modificar
                             </button>
-                            <button class="btn btn-sm btn-outline-danger w-100" onclick="eliminarTarea('${tarea.id}')">
+                            <button class="btn btn-sm btn-outline-danger w-100 fw-bold shadow-sm" onclick="eliminarTarea('${tarea.id}')">
                                 <i class="bi bi-trash"></i> Eliminar
                             </button>
                         </div>
+                        
                     </div>
-                </div>
-            `;
-        });
-        htmlLista += `</div>`;
+                `;
+            });
+        }
+        contenedor.innerHTML = htmlLista;
     }
-    contenedor.innerHTML = htmlLista;
-}
 
 function prepararEdicion(idTarea) {
     const tarea = datosApp.tareas.find(t => t.id === idTarea);

@@ -151,6 +151,14 @@
                         <label class="form-label fw-bold">Descripción Corta</label>
                         <input type="text" class="form-control" id="descripcion_corta" maxlength="100" placeholder="Ej: Reparación de luminaria" required>
                     </div>
+                    
+                    <!-- Compañeros de Equipo -->
+                    <div class="mb-3 p-3 bg-light rounded border">
+                        <label class="form-label small fw-bold text-muted"><i class="bi bi-people"></i> COMPAÑEROS DE EQUIPO EN ESTE PARTE</label>
+                        <div id="contenedorCompaneros" class="d-flex flex-wrap gap-2 mt-2">
+                            <!-- Los checkboxes se inyectarán por JS -->
+                        </div>
+                    </div>
 
                     <div class="row">
                         <div class="col-6 mb-3">
@@ -462,6 +470,36 @@
         new TomSelect("#filtro_lugar", { create: false, sortField: { field: "text", direction: "asc" } });
     }
 
+    // Genera los checks dinámicamente filtrando por el equipo del usuario logueado
+    function cargarCompanerosEquipo() {
+        const contenedor = document.getElementById("contenedorCompaneros");
+        contenedor.innerHTML = "";
+        
+        // Buscamos usuarios del mismo equipo, excluyendo al usuario actual
+        const misCompaneros = datosApp.usuarios.filter(u => u.extra === equipoValidado && u.id !== usuarioValidado);
+        
+        if(misCompaneros.length === 0) {
+            contenedor.innerHTML = "<span class='text-muted small'>No hay otros compañeros en tu equipo.</span>";
+            return;
+        }
+
+        misCompaneros.forEach(comp => {
+            const idCheck = "chk_" + comp.id.replace(/[@.]/g, "_");
+            contenedor.innerHTML += `
+                <div class="form-check form-check-inline border rounded px-2 py-1 bg-white shadow-sm mb-0">
+                    <input class="form-check-input ms-0 me-2" type="checkbox" id="${idCheck}" value="${comp.id}">
+                    <label class="form-check-label small" for="${idCheck}">${comp.nombre}</label>
+                </div>
+            `;
+        });
+    }
+
+    // Lee qué casillas están marcadas antes de enviar
+    function obtenerCompanerosSeleccionados() {
+        const checks = document.querySelectorAll("#contenedorCompaneros input[type='checkbox']:checked");
+        return Array.from(checks).map(chk => chk.value).join(';');
+    }
+    
     function configurarFechasPorDefecto() {
         const hoy = new Date().toISOString().split('T')[0];
         document.getElementById("fecha_inicio").value = hoy;
@@ -484,6 +522,8 @@
             
             // Inyectamos el rol en la cabecera visual
             document.getElementById("headerRol").innerText = rolValidado;
+            //Cargamos los compañeros
+            cargarCompanerosEquipo();
 
             navegarA('menu-section');
         } else {
@@ -535,10 +575,13 @@
 
     // --- MOTOR DE BÚSQUEDA Y FILTRADO ---
 
-    // 1. Obtener la base de tareas según el rol
     function obtenerMisTareasBase() {
         if (rolValidado === "admin") return datosApp.tareas;
-        return datosApp.tareas.filter(t => t.usuario === usuarioValidado);
+        
+        return datosApp.tareas.filter(t => 
+            t.usuario === usuarioValidado || 
+            (t.companeros && t.companeros.includes(usuarioValidado))
+        );
     }
 
     // 2. Filtros de la Barra Principal (Buscador y Mes)
@@ -715,6 +758,18 @@
                 
                 let badgeColor = "bg-info text-dark";
                 let iconEstado = "bi-info-circle";
+
+                //v14
+                let badgeCompaneros = "";
+                // Si la tarea no es mía, pero estoy en la lista de compañeros
+                if (tarea.usuario !== usuarioValidado && tarea.companeros && tarea.companeros.includes(usuarioValidado)) {
+                    badgeCompaneros = `<span class="badge bg-secondary"><i class="bi bi-people-fill"></i> Compartida contigo</span>`;
+                } 
+                // Si la tarea es mía y he añadido compañeros
+                else if (tarea.usuario === usuarioValidado && tarea.companeros && tarea.companeros !== "") {
+                    badgeCompaneros = `<span class="badge bg-light text-dark border"><i class="bi bi-people"></i> Trabajo en equipo</span>`;
+                }
+
                 const estadoLower = nombreEstado.toLowerCase();
                 
                 if(estadoLower.includes("pendiente") || estadoLower.includes("curso")) {
@@ -735,7 +790,8 @@
                                 <p class="text-muted mb-2">${tarea.descripcion_corta}</p>
                                 <div class="d-flex flex-wrap gap-2">
                                     <span class="badge bg-light text-dark border"><i class="bi bi-calendar-event text-secondary"></i> ${fInicioCorta} - ${fFinCorta}</span>
-                                    <span class="badge ${badgeColor}"><i class="bi ${iconEstado}"></i> ${nombreEstado}</span>
+                                    <span class="badge ${badgeColor}"><i class="bi ${iconEstado}"></i> ${nombreEstado} </span>
+                                    <span class="badge bg-light text-dark border"><i> ${badgeCompaneros}</i></span>
                                 </div>
                             </div>
                             <div class="col-12 col-md-3 d-flex flex-row flex-md-column gap-2 justify-content-end">
@@ -776,7 +832,15 @@
             textoLimpio = textoLimpio.replace(regex, "");
         }
         document.getElementById("parte").value = textoLimpio; 
-
+        //v14
+        // Marcar los checks de los compañeros guardados
+        document.querySelectorAll("#contenedorCompaneros input[type='checkbox']").forEach(chk => chk.checked = false);
+        if (tarea.companeros) {
+            const companerosArr = tarea.companeros.split(';');
+            document.querySelectorAll("#contenedorCompaneros input[type='checkbox']").forEach(chk => {
+                if (companerosArr.includes(chk.value)) chk.checked = true;
+            });
+     }
         //Manipular imagen para mostrar
         // Lógica de la mini-imagen con parche para URLs antiguas
         // Lógica de la mini-imagen (Extraemos el ID y usamos el visor de miniaturas de Google)
@@ -889,7 +953,7 @@
         
         const fechaHoy = new Date().toLocaleDateString('es-ES');
         const textoParteFinal = `[${fechaHoy} | ${dias} Días] - ${document.getElementById("parte").value}`;
-
+        
         const payload = {
             modo: modoEdicionId ? "editar" : "crear", 
             idRegistro: modoEdicionId,
@@ -905,7 +969,8 @@
             imagenBase64: "",
             mimeType: "",
             nombreArchivo: "",
-            imagen_actual_url: document.getElementById("imagen_actual_url").value 
+            imagen_actual_url: document.getElementById("imagen_actual_url").value, 
+            companeros: obtenerCompanerosSeleccionados()
         };
 
         const inputImagen = document.getElementById("imagen");
@@ -922,6 +987,7 @@
                 payload.imagenBase64 = evento.target.result.split(',')[1]; 
                 payload.mimeType = archivo.type;
                 payload.nombreArchivo = lugarNormalizado + "_" + nombreOriginalLimpio;
+                
                 
                 enviarAlBackend(payload, btnEnviar);
             };

@@ -487,17 +487,44 @@
 
     // --- 3. LISTADO Y EDICIÓN ---
 
-    // 1. Para el formulario (Intenta mantener el formato de input date, o lo deja como texto crudo)
-    function convertirAFechaInput(fechaStr) {
+    // 1. Motor de fechas: Entiende cualquier cosa que mande Google y lo pasa a AAAA-MM-DD
+    function normalizarFecha(fechaStr) {
         if (!fechaStr) return "";
-        // Devuelve el dato crudo cortando solo si lleva la "T" o el espacio de la hora
-        return fechaStr.toString().split('T')[0].split(' ')[0]; 
+        
+        // Si ya viene como AAAA-MM-DD desde la base de datos, lo dejamos tal cual
+        if (typeof fechaStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fechaStr.trim())) {
+            return fechaStr.trim();
+        }
+
+        // Si viene con formato raro ("Mon Oct 19..."), Javascript lo lee y lo traduce
+        let d = new Date(fechaStr);
+        if (!isNaN(d)) {
+            let month = '' + (d.getMonth() + 1);
+            let day = '' + d.getDate();
+            let year = d.getFullYear();
+            if (month.length < 2) month = '0' + month;
+            if (day.length < 2) day = '0' + day;
+            return [year, month, day].join('-');
+        }
+        
+        return fechaStr; // Fallback
     }
 
-    // 2. Para el listado visual (Muestra EXACTAMENTE lo que hay en Google Sheets)
+    // 2. Para el formulario (exige formato AAAA-MM-DD)
+    function convertirAFechaInput(fechaStr) {
+        return normalizarFecha(fechaStr); 
+    }
+
+    // 3. Para las tarjetas (Lo pone bonito: DD/MM/AAAA)
     function formatoFechaCorta(fechaStr) {
-        if (!fechaStr) return "Sin fecha";
-        return fechaStr.toString().split('T')[0].split(' ')[0];
+        let fechaLimpia = normalizarFecha(fechaStr);
+        if (!fechaLimpia) return "Sin fecha";
+        
+        let partes = fechaLimpia.split('-');
+        if (partes.length === 3) {
+            return `${partes[2]}/${partes[1]}/${partes[0]}`; // Cambia 2026-10-19 a 19/10/2026
+        }
+        return fechaLimpia;
     }
 
     // --- MOTOR DE BÚSQUEDA Y FILTRADO ---

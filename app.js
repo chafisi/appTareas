@@ -6,6 +6,7 @@ let usuarioValidado = null;
 let equipoValidado = null;  
 let rolValidado = null; 
 let modoEdicionId = null;
+let origenNavegacion = 'list-section'; // Recordará de dónde venimos v17
 
 // --- 1. NAVEGACIÓN Y CARGA INICIAL ---
 function navegarA(idSeccion) {
@@ -449,6 +450,7 @@ function renderizarTareas(listaTareas) {
     }
 
 function prepararEdicion(idTarea, origen = 'list-section') {
+    origenNavegacion = origen; // <--- AÑADE ESTA LÍNEA AQUÍ v17
     const tarea = datosApp.tareas.find(t => t.id === idTarea);
     if(!tarea) return;
 
@@ -661,14 +663,27 @@ function enviarAlBackend(payload, btn) {
             cargarDatosDesdeAPI(false).then(() => {
                 alert("✅ ¡Parte guardado correctamente!");
                 
+                // Limpiamos el formulario (sirve tanto para nuevos como para editados)
+                limpiarFormulario();
+                
                 if (payload.modo === "editar") {
-                    // Forzamos volver al listado con los datos nuevos recién bajados
-                    limpiarFormulario();
-                    cargarListadoTareas(); // <-- Aquí forzamos pintar las tarjetas actualizadas
-                    navegarA('list-section');
+                    
+                    // --- AQUÍ APLICAMOS LA MEMORIA INTELIGENTE ---
+                    if (typeof origenNavegacion !== 'undefined' && origenNavegacion === 'informes-section') {
+                        // Venimos de los informes: lo redibujamos y volvemos a él
+                        generarInforme(); 
+                        navegarA('informes-section');
+                    } else {
+                        // Venimos del listado normal: repintamos tarjetas y volvemos
+                        cargarListadoTareas(); 
+                        navegarA('list-section');
+                    }
+                    
+                    // Reseteamos la memoria tras usarla
+                    origenNavegacion = 'list-section';
+
                 } else {
                     // Si era nuevo, volvemos al menú principal
-                    limpiarFormulario();
                     navegarA('menu-section');
                 }
             });

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Trimmer Local</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f5f5f5; color: #333; line-height: 1.6; padding: 20px; max-width: 900px; margin: 0 auto; }
+        h1 { color: #6d4aff; margin-bottom: 10px; font-size: 1.8rem; }
+        .subtitle { color: #666; margin-bottom: 20px; font-size: 0.95rem; }
+        .panel { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .status { font-size: 0.9rem; padding: 10px; border-radius: 4px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .status.loading { background: #fff3cd; color: #856404; }
+        .status.ready { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        .spinner { width: 16px; height: 16px; border: 2px solid #ccc; border-top-color: #6d4aff; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        label { display: block; font-weight: 600; margin-bottom: 8px; color: #444; }
+        input[type="file"] { padding: 12px; border: 2px dashed #ddd; border-radius: 6px; cursor: pointer; width: 100%; transition: border-color 0.3s; }
+        input[type="file"]:hover { border-color: #6d4aff; }
+        .timeline-container { position: relative; margin: 20px 0; padding: 15px; background: #fafafa; border-radius: 6px; display: none; }
+        .timeline-container.active { display: block; }
+        video { width: 100%; max-height: 400px; background: #000; border-radius: 4px; }
+        .slider-group { margin: 15px 0; }
+        .slider-label { display: flex; justify-content: space-between; font-size: 0.85rem; color: #666; margin-bottom: 5px; }
+        input[type="range"] { width: 100%; margin: 5px 0; accent-color: #6d4aff; }
+        .time-display { display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 600; color: #6d4aff; margin-top: 5px; }
+        .btn { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.2s; }
+        .btn-primary { background: #6d4aff; color: white; }
+        .btn-primary:hover { background: #5a40d1; }
+        .btn-primary:disabled { background: #aaa; cursor: not-allowed; }
+        .btn-secondary { background: #e0e0e0; color: #333; }
+        .btn-secondary:hover { background: #d0d0d0; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
+        .button-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+        .progress-bar { height: 4px; background: #e0e0e0; border-radius: 2px; overflow: hidden; margin: 10px 0; display: none; }
+        .progress-bar.active { display: block; }
+        .progress-fill { height: 100%; background: #6d4aff; width: 0%; transition: width 0.3s; }
+        .log { background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 6px; font-family: 'Consolas', monospace; font-size: 0.85rem; max-height: 200px; overflow-y: auto; margin-top: 15px; display: none; }
+        .log.active { display: block; }
+        .info-box { background: #e7f3ff; border-left: 4px solid #2196F3; padding: 15px; margin: 15px 0; border-radius: 0 6px 6px 0; font-size: 0.9rem; }
+        .format-badge { display: inline-block; background: #6d4aff; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; margin-right: 5px; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <h1>✂️ Video Trimmer Local</h1>
+    <p class="subtitle">Recorta vídeos sin subirlos a ningún servidor. Todo el procesamiento ocurre en tu navegador.</p>
+    
+    <!-- Estado de ffmpeg -->
+    <div id="ffmpegStatus" class="status loading">
+        <span class="spinner"></span>
+        <span>Cargando motor de vídeo...</span>
+    </div>
+
+    <!-- Selección de archivo -->
+    <div class="panel">
+        <label for="videoInput">1. Selecciona tu vídeo</label>
+        <input type="file" id="videoInput" accept="video/mp4,video/mkv,video/avi,video/mov,video/webm">
+        <div class="info-box">
+            <strong>Formatos soportados:</strong> <span class="format-badge">MP4</span><span class="format-badge">MKV</span><span class="format-badge">AVI</span><span class="format-badge">MOV</span><span class="format-badge">WebM</span>
+        </div>
+    </div>
+
+    <!-- Timeline y controles -->
+    <div class="timeline-container" id="timelineContainer">
+        <video id="videoPreview" controls></video>
+        
+        <div class="slider-group">
+            <div class="slider-label">
+                <span>Punto de inicio</span>
+                <span id="startTimeDisplay">00:00</span>
+            </div>
+            <input type="range" id="startSlider" min="0" value="0" step="0.1">
+        </div>
+        
+        <div class="slider-group">
+            <div class="slider-label">
+                <span>Punto final</span>
+                <span id="endTimeDisplay">00:00</span>
+            </div>
+            <input type="range" id="endSlider" min="0" value="0" step="0.1">
+        </div>
+
+        <div class="time-display">
+            <span>Duración del clip: <span id="durationDisplay">00:00</span></span>
+        </div>
+
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="button-row">
+            <button class="btn btn-primary" id="trimBtn" disabled>Recortar Vídeo</button>
+            <button class="btn btn-secondary" id="resetBtn">Limpiar</button>
+            <button class="btn btn-secondary" id="showLogBtn">Mostrar/Ocultar Registro</button>
+        </div>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <!-- Información técnica -->
+    <div class="panel" style="margin-top: 30px;">
+        <h3>ℹ️ Información</h3>
+        <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+            Esta aplicación usa <strong>ffmpeg.wasm</strong> para procesar vídeos directamente en tu navegador. 
+            El primer uso descargará ~32 MB del motor de procesamiento (se cachea para usos posteriores).
+        </p>
+        <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+            <strong>Privacidad:</strong> Tus vídeos nunca salen de tu dispositivo. Todo el procesamiento es local.
+        </p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/util.js"></script>
+    
+    <script>
+        // Variables globales
+        let ffmpeg = null;
+        let ffmpegLoaded = false;
+        let currentVideo = null;
+        let videoDuration = 0;
+
+        // Elementos del DOM
+        const ffmpegStatus = document.getElementById('ffmpegStatus');
+        const videoInput = document.getElementById('videoInput');
+        const timelineContainer = document.getElementById('timelineContainer');
+        const videoPreview = document.getElementById('videoPreview');
+        const startSlider = document.getElementById('startSlider');
+        const endSlider = document.getElementById('endSlider');
+        const startTimeDisplay = document.getElementById('startTimeDisplay');
+        const endTimeDisplay = document.getElementById('endTimeDisplay');
+        const durationDisplay = document.getElementById('durationDisplay');
+        const trimBtn = document.getElementById('trimBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const showLogBtn = document.getElementById('showLogBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const log = document.getElementById('log');
+
+        // Utilidades
+        const formatTime = (seconds) => {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        };
+
+        const addLog = (message) => {
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML += `[${timestamp}] ${message}\n`;
+            log.scrollTop = log.scrollHeight;
+        };
+
+        const updateStatus = (state, message, spinner = false) => {
+            ffmpegStatus.className = 'status ' + state;
+            ffmpegStatus.innerHTML = (spinner ? '<span class="spinner"></span> ' : '') + `<span>${message}</span>`;
+        };
+
+        // Inicializar FFmpeg
+        const initFFmpeg = async () => {
+            try {
+                const { FFmpeg } = FFmpegWASM;
+                ffmpeg = new FFmpeg();
+                
+                // Configurar logging
+                ffmpeg.on('log', ({ message }) => {
+                    addLog(message);
+                });
+
+                ffmpeg.on('progress', ({ progress }) => {
+                    progressFill.style.width = `${progress * 100}%`;
+                });
+
+                // Cargar ffmpeg desde CDN
+                updateStatus('loading', 'Descargando motor de vídeo (~32 MB)...', true);
+                
+                await ffmpeg.load({
+                    coreURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
+                    wasmURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm',
+                });
+
+                ffmpegLoaded = true;
+                updateStatus('ready', '✅ Motor de vídeo listo');
+                addLog('FFmpeg cargado correctamente');
+            } catch (error) {
+                console.error('Error cargando FFmpeg:', error);
+                updateStatus('error', `❌ Error: ${error.message}. Verifica que estás usando un servidor local (http://) y no file://`);
+                addLog(`ERROR: ${error.message}`);
+            }
+        };
+
+        // Manejar selección de vídeo
+        videoInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            addLog(`Archivo seleccionado: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+            
+            const url = URL.createObjectURL(file);
+            videoPreview.src = url;
+            
+            videoPreview.onloadedmetadata = () => {
+                videoDuration = videoPreview.duration;
+                startSlider.max = videoDuration;
+                endSlider.max = videoDuration;
+                startSlider.value = 0;
+                endSlider.value = videoDuration;
+                
+                startTimeDisplay.textContent = formatTime(0);
+                endTimeDisplay.textContent = formatTime(videoDuration);
+                durationDisplay.textContent = formatTime(videoDuration);
+                
+                timelineContainer.classList.add('active');
+                trimBtn.disabled = !ffmpegLoaded;
+                addLog(`Vídeo cargado: ${videoDuration.toFixed(2)} segundos`);
+            };
+        });
+
+        // Actualizar displays de tiempo
+        const updateTimeDisplays = () => {
+            const start = parseFloat(startSlider.value);
+            const end = parseFloat(endSlider.value);
+            
+            startTimeDisplay.textContent = formatTime(start);
+            endTimeDisplay.textContent = formatTime(end);
+            durationDisplay.textContent = formatTime(end - start);
+        };
+
+        startSlider.addEventListener('input', updateTimeDisplays);
+        endSlider.addEventListener('input', updateTimeDisplays);
+
+        // Navegación en video
+        videoPreview.addEventListener('seeked', () => {
+            const currentTime = videoPreview.currentTime;
+            if (currentTime >= parseFloat(endSlider.value)) {
+                videoPreview.pause();
+            }
+        });
+
+        // Recortar vídeo
+        trimBtn.addEventListener('click', async () => {
+            if (!ffmpegLoaded || !currentVideo) {
+                addLog('No hay vídeo cargado o FFmpeg no está disponible');
+                return;
+            }
+
+            const start = parseFloat(startSlider.value);
+            const end = parseFloat(endSlider.value);
+            const duration = end - start;
+
+            if (duration <= 0) {
+                addLog('Error: La duración del corte debe ser mayor a 0');
+                return;
+            }
+
+            trimBtn.disabled = true;
+            progressBar.classList.add('active');
+            progressFill.style.width = '0%';
+            addLog(`Iniciando corte: ${formatTime(start)} → ${formatTime(end)} (${duration.toFixed(2)}s)`);
+
+            try {
+                const file = videoInput.files[0];
+                const fileName = 'input.mp4';
+                const outputName = 'trimmed.mp4';
+
+                // Escribir archivo en filesystem virtual de FFmpeg
+                const arrayBuffer = await file.arrayBuffer();
+                const uint8Array = new Uint8Array(arrayBuffer);
+                ffmpeg.FS('writeFile', fileName, uint8Array);
+
+                addLog('Archivo escrito en memoria virtual');
+
+                // Ejecutar comando de corte (sin recodificar si es posible)
+                await ffmpeg.run(
+                    '-i', fileName,
+                    '-ss', start.toString(),
+                    '-to', end.toString(),
+                    '-c', 'copy',
+                    outputName
+                );
+
+                addLog('Corte completado con éxito');
+
+                // Leer archivo resultante
+                const data = ffmpeg.FS('readFile', outputName);
+
+                // Crear blob y descargar
+                const blob = new Blob([data.buffer], { type: 'video/mp4' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'trimmed_' + Date.now() + '.mp4';
+                a.click();
+
+                addLog(`Archivo descargado: trimmed_${Date.now()}.mp4`);
+
+            } catch (error) {
+                console.error('Error durante el corte:', error);
+                addLog(`ERROR: ${error.message}`);
+                updateStatus('error', '❌ Error durante el procesamiento');
+            } finally {
+                trimBtn.disabled = false;
+                progressBar.classList.remove('active');
+            }
+        });
+
+        // Resetear
+        resetBtn.addEventListener('click', () => {
+            videoInput.value = '';
+            videoPreview.src = '';
+            timelineContainer.classList.remove('active');
+            videoPreview.load();
+            log.innerHTML = '';
+            addLog('Reinicio completado');
+        });
+
+        // Mostrar/ocultar log
+        showLogBtn.addEventListener('click', () => {
+            log.classList.toggle('active');
+        });
+
+        // Iniciar al cargar
+        initFFmpeg();
+        addLog('Aplicación iniciada');
+    </script>
+</body>
+</html>
